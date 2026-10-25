@@ -163,6 +163,7 @@ def check_auth(args) -> None:
 
 
 def t_auth_status(state, args):
+    check_auth(args)
     return {"mode": "oauth2",
             "flows": ["authorization_code", "client_credentials"],
             "scopes_shape": ["tickets:read", "tickets:write",
@@ -507,6 +508,7 @@ def t_reply_send(state, args):
 
 
 def t_receipt_list(state, args):
+    check_auth(args)
     limit = args.get("limit")
     receipts = state["receipts"]
     if limit is not None:
@@ -521,7 +523,7 @@ TOOLS = {
         "Show Haven's auth shape: OAuth2 only (authorization code + "
         "client credentials). API-token auth is NOT implemented — "
         "Zendesk tokens stop working 2027-04-30 (spec 12.2).",
-        {}, []),
+        {"auth": {"type": "object"}}, []),
     "ticket_search": (
         t_ticket_search,
         "Search fixture tickets by status and/or subject/tag query. "
@@ -592,7 +594,8 @@ TOOLS = {
         t_receipt_list,
         "List the append-only, hash-chained receipts and verify the "
         "chain. Receipts carry IDs + hashes only — never content.",
-        {"limit": {"type": "integer"}}, []),
+        {"limit": {"type": "integer"},
+         "auth": {"type": "object"}}, []),
 }
 
 # Capability denylist, stated in code (spec 6.2 + 8.5): no deletes,

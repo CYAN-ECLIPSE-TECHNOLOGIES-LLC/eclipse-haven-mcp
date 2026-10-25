@@ -177,6 +177,44 @@ class TestAuthShape(unittest.TestCase):
         self.assertNotIn("X-Zendesk", src)
 
 
+class TestAuthRefusalAllTools(unittest.TestCase):
+    """Regression (bench defect, scorecard -2 H1): api_token auth
+    must be refused BY NAME on EVERY tool. auth_status and
+    receipt_list originally never called check_auth and silently
+    ignored a presented token (ok=True). Enumerating S.TOOLS —
+    not a hand-kept list — means any future tool that forgets
+    check_auth fails here. On the pre-fix code this test fails
+    for exactly auth_status and receipt_list."""
+
+    ARGS = {
+        "auth_status": {},
+        "ticket_search": {},
+        "ticket_get": {"ticket_id": 9001},
+        "user_get": {"user_id": 2002},
+        "org_get": {"organization_id": 3001},
+        "ticket_create": {"subject": "x", "requester_id": 2002},
+        "ticket_update": {"ticket_id": 9001,
+                          "changes": {"tags": ["x"]}},
+        "reply_draft": {"ticket_id": 9001},
+        "reply_send": {"draft_id": "d-x", "approval_token": "x"},
+        "receipt_list": {},
+    }
+
+    def test_api_token_refused_by_name_on_all_10_tools(self):
+        self.assertEqual(len(S.TOOLS), 10)
+        self.assertEqual(set(self.ARGS), set(S.TOOLS))
+        for name, (fn, *_rest) in S.TOOLS.items():
+            with self.subTest(tool=name):
+                state = fresh_state()
+                args = dict(self.ARGS[name])
+                args["auth"] = {"type": "api_token", "token": "x"}
+                with self.assertRaises(S.ToolError) as ctx:
+                    fn(state, args)
+                self.assertIn("TOKEN_AUTH_NOT_IMPLEMENTED",
+                              str(ctx.exception))
+                self.assertIn("2027-04-30", str(ctx.exception))
+
+
 class TestCreateAndChain(unittest.TestCase):
     def test_create_then_receipts_content_free(self):
         state = fresh_state()
