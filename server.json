@@ -1,0 +1,8 @@
+{
+ "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+ "name": "io.github.CYAN-ECLIPSE-TECHNOLOGIES-LLC/haven",
+ "title": "Eclipse Haven MCP",
+ "description": "The governed Zendesk server: OAuth-first, drafts until approved, and a receipt for every touch.",
+ "version": "0.1.0",
+ "websiteUrl": "https://eclipsebazaar.com"
+}
